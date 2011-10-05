@@ -1,0 +1,31 @@
+# Compiled source #
+###################
+*.class
+*.exe
+*.so
+
+# Idea Project Files #
+######################
+*.iml
+*.iws
+*.ipr
+.idea
+
+# Eclipse Project Files #
+#########################
+.classpath
+.project
+.settings/**/*
+.metadata/**/*
+
+# Target folder #
+#################
+target
+
+
+# SBT local folders #
+project/boot
+project/target
+project/project
+project/target
+
