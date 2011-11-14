@@ -16,7 +16,7 @@ Please note that it a direct copy of akka-sbt-plugin :)
 
  Add the following lines to ~/.sbt/plugins/build.sbt or PROJECT_DIR/project/plugins/build.sbt
 
-> libraryDependencies += "hms.sbt.plugins" %% "sbt-app-assembler" % "0.10.0"
+> libraryDependencies += "hms.sbt.plugins" %% "sbt-app-assembler" % "0.1.0-SNAPSHOT"
 
 
 Inject plugin settings into project in build.sbt:
