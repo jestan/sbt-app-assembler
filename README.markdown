@@ -20,6 +20,7 @@ Please note that it a direct copy of akka-sbt-plugin :)
 
 
 Inject plugin settings into project in build.sbt:
+> import SbtAppAssemblerPlugin._
 
 > seq(appAssemblerSettings :_*)
 
