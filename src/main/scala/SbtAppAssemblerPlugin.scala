@@ -37,11 +37,11 @@ object SbtAppAssemblerPlugin extends Plugin {
 
   lazy val appAssemblerSettings: Seq[sbt.Project.Setting[_]] =
     inConfig(Dist)(Seq(
-      dist <<= packageBin.identity,
+      dist <<= packageBin,
       packageBin <<= distTask,
       distClean <<= distCleanTask,
-      dependencyClasspath <<= (dependencyClasspath in Runtime).identity,
-      unmanagedResourceDirectories <<= (unmanagedResourceDirectories in Runtime).identity,
+      dependencyClasspath <<= (dependencyClasspath in Runtime),
+      unmanagedResourceDirectories <<= (unmanagedResourceDirectories in Runtime),
       outputDirectory <<= target / "dist",
       configSourceDirs <<= defaultConfigSourceDirs,
       libFilter := {
@@ -49,33 +49,34 @@ object SbtAppAssemblerPlugin extends Plugin {
       },
       additionalLibs <<= defaultAdditionalLibs,
       distConfig <<= (outputDirectory, configSourceDirs, appAssemblerJvmOptions, appAssemblerMainClass, libFilter, additionalLibs) map DistConfig)) ++
-      Seq(dist <<= (dist in Dist).identity, distNeedsPackageBin)
+      Seq(dist <<= (dist in Dist), distNeedsPackageBin)
 
   private def distTask: Initialize[Task[File]] =
     (distConfig, sourceDirectory, crossTarget, dependencyClasspath, projectDependencies, allDependencies, buildStructure, state) map {
       (conf, src, tgt, cp, projDeps, allDeps, buildStruct, st) ⇒
 
-        if (isKernelProject(allDeps)) {
-          val log = logger(st)
-          val distBinPath = conf.outputDirectory / "bin"
-          val distConfigPath = conf.outputDirectory / "conf"
-          val distLibPath = conf.outputDirectory / "lib"
+        val log = logger(st)
 
-          val subProjectDependencies: Set[SubProjectInfo] = allSubProjectDependencies(projDeps, buildStruct, st)
+        val distBinPath = conf.outputDirectory / "bin"
+        val distConfigPath = conf.outputDirectory / "conf"
+        val distLibPath = conf.outputDirectory / "lib"
 
-          log.info("Creating distribution %s ..." format conf.outputDirectory)
-          IO.createDirectory(conf.outputDirectory)
-          Scripts(conf.distJvmOptions, conf.distMainClass).writeScripts(distBinPath)
-          copyDirectories(conf.configSourceDirs, distConfigPath)
-          copyJars(tgt, distLibPath)
+        val subProjectDependencies: Set[SubProjectInfo] = allSubProjectDependencies(projDeps, buildStruct, st)
 
-          copyFiles(libFiles(cp, conf.libFilter), distLibPath)
-          copyFiles(conf.additionalLibs, distLibPath)
-          for (subTarget <- subProjectDependencies.map(_.target)) {
-            copyJars(subTarget, distLibPath)
-          }
-          log.info("Distribution created.")
+        log.info("Creating distribution %s ..." format conf.outputDirectory)
+        IO.createDirectory(conf.outputDirectory)
+        Scripts(conf.distJvmOptions, conf.distMainClass).writeScripts(distBinPath)
+        copyDirectories(conf.configSourceDirs, distConfigPath)
+        copyJars(tgt, distLibPath)
+
+        copyFiles(libFiles(cp, conf.libFilter), distLibPath)
+        copyFiles(conf.additionalLibs, distLibPath)
+        for (subTarget <- subProjectDependencies.map(_.target)) {
+          copyJars(subTarget, distLibPath)
         }
+
+        log.info("Distribution created.")
+
         conf.outputDirectory
     }
 
@@ -83,14 +84,10 @@ object SbtAppAssemblerPlugin extends Plugin {
     (outputDirectory, allDependencies, streams) map {
       (outDir, deps, s) ⇒
 
-        if (isKernelProject(deps)) {
-          val log = s.log
-          log.info("Cleaning " + outDir)
-          IO.delete(outDir)
-        }
+        val log = s.log
+        log.info("Cleaning " + outDir)
+        IO.delete(outDir)
     }
-
-  def isKernelProject(dependencies: Seq[ModuleID]): Boolean = true
 
   private def defaultConfigSourceDirs = (sourceDirectory, unmanagedResourceDirectories) map {
     (src, resources) ⇒
@@ -98,8 +95,7 @@ object SbtAppAssemblerPlugin extends Plugin {
   }
 
   private def defaultAdditionalLibs = (libraryDependencies) map {
-    (libs) ⇒
-      Seq.empty[File]
+    (libs) ⇒ Seq.empty[File]
   }
 
   private case class Scripts(jvmOptions: String, mainClass: String) {
@@ -190,9 +186,9 @@ object SbtAppAssemblerPlugin extends Plugin {
   private def projectInfo(projectRef: ProjectRef, project: ResolvedProject, buildStruct: BuildStructure, state: State,
                           allProjects: Map[ProjectRef, ResolvedProject]): SubProjectInfo = {
 
-    def optionalSetting[A](key: ScopedSetting[A]) = key in projectRef get buildStruct.data
+    def optionalSetting[A](key: SettingKey[A]) = key in projectRef get buildStruct.data
 
-    def setting[A](key: ScopedSetting[A], errorMessage: => String) = {
+    def setting[A](key: SettingKey[A], errorMessage: => String) = {
       optionalSetting(key) getOrElse {
         logger(state).error(errorMessage);
         throw new IllegalArgumentException()
@@ -200,11 +196,11 @@ object SbtAppAssemblerPlugin extends Plugin {
     }
 
     def evaluateTask[T](taskKey: sbt.Project.ScopedKey[sbt.Task[T]]) = {
-      EvaluateTask.evaluateTask(buildStruct, taskKey, state, projectRef, false, EvaluateTask.SystemProcessors)
+      EvaluateTask.apply(buildStruct, taskKey, state, projectRef)
     }
 
     val projDeps: Seq[ModuleID] = evaluateTask(Keys.projectDependencies) match {
-      case Some(Value(moduleIds)) => moduleIds
+      case Some((_, Value(moduleIds))) => moduleIds
       case _ => Seq.empty
     }
 
