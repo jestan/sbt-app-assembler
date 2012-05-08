@@ -23,3 +23,5 @@ publishTo <<= (version) { version: String =>
 
 credentials += Credentials("Repository Archiva Managed internal Repository", "192.168.0.7", "xxx", "xxx")
 
+credentials += Credentials("Repository Archiva Managed snapshots Repository", "192.168.0.7", "xxx", "xxx")
+
