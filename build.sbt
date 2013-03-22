@@ -5,7 +5,7 @@ organization := "hms.sbt.plugins"
 
 name := "sbt-app-assembler"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.1"
 
 publishMavenStyle := true
       
@@ -17,5 +17,5 @@ publishTo <<= (version) {version: String =>
        Some("Archiva Managed internal Repository" at repo + "internal/")
     }
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials-snapshot")
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials-release")
 
