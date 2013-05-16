@@ -18,25 +18,24 @@ object SbtAppAssemblerPlugin extends Plugin {
                         libFilter: File ⇒ Boolean,
                         additionalLibs: Seq[File])
 
-  val Dist = config("dist") extend (Runtime)
-  val dist = TaskKey[File]("dist", "Builds the app assembly directory")
+  val Assemble = config("app-assembler") extend (Runtime)
+  val dist = TaskKey[File]("assemble", "Builds the app assembly directory")
   val distClean = TaskKey[Unit]("clean", "Removes the app assembly directory")
 
-  val outputDirectory = SettingKey[File]("output-directory")
-  val configSourceDirs = TaskKey[Seq[File]]("conf-source-directories",
-    "Configuration files are copied from these directories")
+  val outputDirectory = SettingKey[File]("app-assembler-output-directory")
+  val configSourceDirs = TaskKey[Seq[File]]("app-assembler-conf-source-directories","Configuration files are copied from these directories")
 
   val appAssemblerJvmOptions = SettingKey[String]("app-assembler-jvm-options", "JVM parameters to use in start script")
   val appAssemblerMainClass = SettingKey[String]("app-assembler-main-class", "App main class to use in start script")
 
-  val libFilter = SettingKey[File ⇒ Boolean]("lib-filter", "Filter of dependency jar files")
-  val additionalLibs = TaskKey[Seq[File]]("additional-libs", "Additional dependency jar files")
-  val distConfig = TaskKey[DistConfig]("dist-config")
+  val libFilter = SettingKey[File ⇒ Boolean]("app-assembler-lib-filter", "Filter of dependency jar files")
+  val additionalLibs = TaskKey[Seq[File]]("app-assembleradditional-libs", "Additional dependency jar files")
+  val distConfig = TaskKey[DistConfig]("app-assembler")
 
   val distNeedsPackageBin = dist <<= dist.dependsOn(packageBin in Compile)
 
   lazy val appAssemblerSettings: Seq[sbt.Project.Setting[_]] =
-    inConfig(Dist)(Seq(
+    inConfig(Assemble)(Seq(
       dist <<= packageBin.identity,
       packageBin <<= distTask,
       distClean <<= distCleanTask,
@@ -49,7 +48,7 @@ object SbtAppAssemblerPlugin extends Plugin {
       },
       additionalLibs <<= defaultAdditionalLibs,
       distConfig <<= (outputDirectory, configSourceDirs, appAssemblerJvmOptions, appAssemblerMainClass, libFilter, additionalLibs) map DistConfig)) ++
-      Seq(dist <<= (dist in Dist).identity, distNeedsPackageBin)
+      Seq(dist <<= (dist in Assemble).identity, distNeedsPackageBin)
 
   private def distTask: Initialize[Task[File]] =
     (distConfig, sourceDirectory, crossTarget, dependencyClasspath, projectDependencies, allDependencies, buildStructure, state) map {
