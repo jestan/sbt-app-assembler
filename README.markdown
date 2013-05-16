@@ -6,17 +6,17 @@ Please note that it a direct copy of akka-sbt-plugin :)
 
 
 ## Requirements
- sbt 0.10.1
+ sbt 0.12.x
 
 ## Installation
 
- sbt 0.10.1
+ sbt 0.12.x
 
  Build the plugin in and publish it locally.
 
- Add the following lines to ~/.sbt/plugins/build.sbt or PROJECT_DIR/project/plugins/build.sbt
+ Add the following lines to PROJECT_DIR/project/plugin.sbt
 
-> libraryDependencies += "hms.sbt.plugins" %% "sbt-app-assembler" % "0.1.0-SNAPSHOT"
+> addSbtPlugin("hms.sbt.plugin" % "sbt-app-assembler" % "0.1.1")
 
 
 Inject plugin settings into project in build.sbt:
@@ -32,4 +32,4 @@ Inject plugin settings into project in build.sbt:
 
 ## Usage
 
-  Use dist sbt task to create the application assembly
+  Use 'assemble' sbt task to create the application assembly
